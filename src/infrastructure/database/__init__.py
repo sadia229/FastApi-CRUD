@@ -8,7 +8,17 @@ def _default_database_url() -> str:
     return "sqlite+aiosqlite:///./app.db"
 
 
-DATABASE_URL = os.getenv("DATABASE_URL", _default_database_url())
+def _normalize_database_url(database_url: str) -> str:
+    if database_url.startswith("postgresql+asyncpg://"):
+        return database_url
+    if database_url.startswith("postgresql://"):
+        return database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if database_url.startswith("postgres://"):
+        return database_url.replace("postgres://", "postgresql+asyncpg://", 1)
+    return database_url
+
+
+DATABASE_URL = _normalize_database_url(os.getenv("DATABASE_URL", _default_database_url()))
 DATABASE_ECHO = os.getenv("DATABASE_ECHO", "false").lower() == "true"
 
 
